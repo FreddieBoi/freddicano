@@ -30,7 +30,7 @@ export const TournamentForm = (props: TournamentFormProps) => {
   const handleOnSubmit = useCallback(() => {
     const tournament: Tournament = {
       id: id ?? uuidv4(),
-      createdAt: createdAt ?? new Date(),
+      createdAt: createdAt ?? new Date().toISOString(),
       status: status ?? 'new',
       name,
       courtCount,
@@ -56,7 +56,7 @@ export const TournamentForm = (props: TournamentFormProps) => {
 
   const invalid = useMemo(() => !name || !courtCount || playerCount < courtCount * 4 || players.some(p => !p.name), [courtCount, name, playerCount, players]);
 
-  const title = createdAt ? 'Update tournament' : 'Add tournament';
+  const title = id ? 'Update tournament' : 'Add tournament';
   const classes = useStyles();
   return (
     <form onSubmit={handleOnSubmit} className={classes.root}>
@@ -98,13 +98,13 @@ export const TournamentForm = (props: TournamentFormProps) => {
           onBack();
         }}
       >
-        {createdAt ? 'Back to tournament' : 'Back to tournament list'}
+        {id ? 'Back to tournament' : 'Back to tournament list'}
       </Button>
       <Button
         type="submit"
         appearance="primary"
         disabled={invalid}
-        icon={createdAt ? <EditRegular /> : <AddRegular />}
+        icon={id ? <EditRegular /> : <AddRegular />}
       >
         {title}
       </Button>

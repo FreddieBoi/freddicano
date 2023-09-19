@@ -42,6 +42,7 @@ export const App = () => {
     tournaments,
     addTournament,
     removeTournament,
+    updateTournament,
     selectedTournament,
     selectTournament,
     startTournament,
@@ -54,7 +55,12 @@ export const App = () => {
           <TournamentForm
             onBack={() => { setFormOpen(false); }}
             onSubmit={(t) => {
-              addTournament(t);
+              if (t.id === selectedTournament?.id) {
+                updateTournament(t);
+              } else {
+                addTournament(t);
+                selectTournament(t.id);
+              }
               setFormOpen(false);
             }}
             {...selectedTournament}

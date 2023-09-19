@@ -20,7 +20,7 @@ export const TournamentCard = (props: TournamentCardProps) => {
     <Card onClick={onOpen} className={classes.root}>
       <CardHeader
         header={<Body1Stronger>{name}</Body1Stronger>}
-        description={<Caption1>{createdAt.toLocaleDateString()}</Caption1>}
+        description={<Caption1>{createdAt}</Caption1>}
         action={onRemove && (
           <Button
             appearance="subtle"
