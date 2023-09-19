@@ -1,7 +1,8 @@
 import { Button, Field, Input, SpinButton, Title1, Title2, makeStyles, shorthands, tokens } from "@fluentui/react-components";
 import { Player, Tournament } from "./use-tournaments"
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { ArrowLeftRegular, EditRegular, AddRegular } from '@fluentui/react-icons';
+import { v4 as uuidv4 } from 'uuid';
 
 const useStyles = makeStyles({
   root: {
@@ -18,7 +19,7 @@ export type TournamentFormProps = Partial<Tournament> & {
 };
 
 export const TournamentForm = (props: TournamentFormProps) => {
-  const { createdAt, onSubmit, onBack } = props;
+  const { id, status, createdAt, onSubmit, onBack } = props;
 
   const [name, setName] = useState(props.name ?? '');
   const [courtCount, setCourtCount] = useState(props.courtCount ?? 1);
@@ -28,19 +29,20 @@ export const TournamentForm = (props: TournamentFormProps) => {
 
   const handleOnSubmit = useCallback(() => {
     const tournament: Tournament = {
+      id: id ?? uuidv4(),
+      createdAt: createdAt ?? new Date(),
+      status: status ?? 'new',
       name,
       courtCount,
       playerCount,
-      createdAt: createdAt ?? new Date(),
       players,
-      status: 'new'
     };
     onSubmit(tournament);
-  }, [name, courtCount, playerCount, createdAt, players, onSubmit]);
+  }, [id, name, courtCount, playerCount, createdAt, players, status, onSubmit]);
 
   useLayoutEffect(() => {
     setPlayerCount(courtCount * 4);
-  }, [courtCount])
+  }, [courtCount]);
 
   useLayoutEffect(() => {
     setPlayers(s => {
@@ -50,7 +52,9 @@ export const TournamentForm = (props: TournamentFormProps) => {
       }
       return result;
     });
-  }, [playerCount])
+  }, [playerCount]);
+
+  const invalid = useMemo(() => !name || !courtCount || playerCount < courtCount * 4 || players.some(p => !p.name), [courtCount, name, playerCount, players]);
 
   const title = createdAt ? 'Update tournament' : 'Add tournament';
   const classes = useStyles();
@@ -73,9 +77,9 @@ export const TournamentForm = (props: TournamentFormProps) => {
       <Field label="Number of players" required validationState={playerCount < courtCount * 4 ? 'error' : undefined} validationMessage={playerCount < courtCount * 4 ? `You need at least ${courtCount * 4} players` : undefined}>
         <SpinButton name="playerCount" value={playerCount} onChange={(_e, data) => { setPlayerCount(data.value ?? 0); }} />
       </Field>
-      {players.map((_v, i) => (
-        <Field key={i} label={`Player ${i + 1}`} required validationState={!players[i].name ? 'warning' : undefined} validationMessage={!players[i].name ? 'Enter player name' : undefined}>
-          <Input name="name" value={players[i].name} onChange={(_e, data) => {
+      {players.map((p, i) => (
+        <Field key={i} label={`Player ${i + 1}`} required validationState={!p.name ? 'warning' : undefined} validationMessage={!p.name ? 'Enter player name' : undefined}>
+          <Input name="name" value={p.name} onChange={(_e, data) => {
             setPlayers((s) => {
               const result = [...s];
               result[i].name = data.value;
@@ -99,7 +103,7 @@ export const TournamentForm = (props: TournamentFormProps) => {
       <Button
         type="submit"
         appearance="primary"
-        disabled={!name || !courtCount || playerCount < courtCount * 4 || players.some(p => !p.name)}
+        disabled={invalid}
         icon={createdAt ? <EditRegular /> : <AddRegular />}
       >
         {title}

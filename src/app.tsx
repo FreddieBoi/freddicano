@@ -16,6 +16,7 @@ const useStyles = makeStyles({
   root: {
     height: '100%',
     width: '100%',
+    ...shorthands.overflow('hidden', 'auto'),
   },
   main: {
     display: 'flex',
@@ -37,7 +38,15 @@ export const App = () => {
   useStaticStyles();
   const classes = useStyles();
   const [formOpen, setFormOpen] = useState(false);
-  const { tournaments, addTournament, removeTournament, selectedTournament, selectTournament, startTournament } = useTournaments();
+  const {
+    tournaments,
+    addTournament,
+    removeTournament,
+    selectedTournament,
+    selectTournament,
+    startTournament,
+    completeTournament
+  } = useTournaments();
   return (
     <div className={classes.root}>
       <div className={classes.main}>
@@ -55,7 +64,8 @@ export const App = () => {
           <TournamentSummary
             onBack={() => { selectTournament(undefined); }}
             onEdit={() => { setFormOpen(true); }}
-            onStart={() => { startTournament(selectedTournament); }}
+            onStart={() => { startTournament(selectedTournament.id); }}
+            onComplete={() => { completeTournament(selectedTournament.id); }}
             {...selectedTournament}
           />
         )}

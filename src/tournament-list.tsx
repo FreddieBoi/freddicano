@@ -16,8 +16,8 @@ const useStyles = makeStyles({
 export interface TournamentListProps {
   tournaments: Tournament[];
   onAdd: () => void;
-  onRemove: (t: Tournament) => void;
-  onOpen: (t: Tournament) => void;
+  onRemove: (tournamentId: string) => void;
+  onOpen: (tournamentId: string) => void;
 }
 
 export const TournamentList = (props: TournamentListProps) => {
@@ -33,8 +33,12 @@ export const TournamentList = (props: TournamentListProps) => {
         Add tournament
       </Button>
       {
-        tournaments.map((t, i) => (
-          <TournamentCard key={i} {...t} onRemove={() => { onRemove(t); }} onOpen={() => { onOpen(t); }} />
+        tournaments.map((t) => (
+          <TournamentCard
+            key={t.id} {...t}
+            onRemove={() => { onRemove(t.id); }}
+            onOpen={() => { onOpen(t.id); }}
+          />
         ))
       }
     </div>

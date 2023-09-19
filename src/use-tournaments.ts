@@ -1,26 +1,29 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export interface Player {
   name: string;
 }
 
+export type TournamentStatus = 'new' | 'ongoing' | 'completed';
+
 export interface Tournament {
+  id: string;
   name: string;
   createdAt: Date;
   playerCount: number;
   courtCount: number;
-  status: 'new' | 'ongoing' | 'completed'
+  status: TournamentStatus;
   players: Player[]
 }
 
 export interface UseTournamentsResult {
   tournaments: Tournament[];
-  addTournament: (t: Tournament) => void;
-  removeTournament: (t: Tournament) => void;
+  addTournament: (tournament: Tournament) => void;
+  removeTournament: (tournamentId: string) => void;
   selectedTournament: Tournament | undefined;
-  selectTournament: (t: Tournament | undefined) => void;
-  startTournament: (t: Tournament) => void;
-  completeTournament: (t: Tournament) => void;
+  selectTournament: (tournamentId: string | undefined) => void;
+  startTournament: (tournamentId: string) => void;
+  completeTournament: (tournamentId: string) => void;
 }
 
 export const useTournaments = (): UseTournamentsResult => {
@@ -28,67 +31,61 @@ export const useTournaments = (): UseTournamentsResult => {
 
   const addTournament = useCallback((t: Tournament) => {
     setTournaments(s => [...s, t]);
-    setSelectedTournament({ ...t });
+    setSelectedTournamentId(t.id);
   }, []);
 
-  const removeTournament = useCallback((t: Tournament) => {
-    setTournaments(s => {
-      const result = [...s];
-      const index = result.findIndex((st) => st.name === t.name && st.createdAt === t.createdAt);
-      result.splice(index, 1);
-      return result;
+  const removeTournament = useCallback((tournamentId: string) => {
+    setTournaments(prevTournaments => {
+      const index = prevTournaments.findIndex((t) => t.id === tournamentId);
+      if (index < 0) {
+        return prevTournaments;
+      }
+      const newTournaments = [...prevTournaments];
+      newTournaments.splice(index, 1);
+      return newTournaments;
     });
   }, []);
 
-  const [selectedTournament, setSelectedTournament] = useState<Tournament | undefined>(undefined);
-  const selectTournament = useCallback((t: Tournament | undefined) => {
-    const tournament = tournaments.find((tt) => tt.name === t?.name && tt.createdAt === t.createdAt);
-    setSelectedTournament(tournament && { ...tournament });
-  }, [tournaments])
+  const [selectedTournamentId, setSelectedTournamentId] = useState<string | undefined>(undefined);
+  const selectedTournament = useMemo(() => tournaments.find((t) => t.id === selectedTournamentId), [selectedTournamentId, tournaments]);
 
-  useEffect(() => {
-    if (!selectedTournament) {
-      return;
-    }
-    if (tournaments.find((t) => t.name === selectedTournament.name && t.createdAt === selectedTournament.createdAt)) {
-      return;
-    }
-    setSelectedTournament(undefined);
-  }, [tournaments, selectedTournament])
-
-  const startTournament = useCallback((t: Tournament) => {
-    const tournament = tournaments.find((tt) => tt.name === t.name && tt.createdAt === t.createdAt);
-    if (!tournament) {
-      return;
-    }
-    setTournaments(s => {
-      const result = [...s];
-      const index = result.findIndex((st) => st.name === t.name && st.createdAt === t.createdAt);
-      result[index].status = 'ongoing';
-      return result;
+  const startTournament = useCallback((tournamentId: string) => {
+    setTournaments(prevTournaments => {
+      const index = prevTournaments.findIndex((t) => t.id === tournamentId);
+      if (index < 0) {
+        return prevTournaments;
+      }
+      const newTournaments = [...prevTournaments];
+      newTournaments[index] = {
+        ...newTournaments[index],
+        status: 'ongoing'
+      };
+      return newTournaments;
     });
-  }, [tournaments]);
+  }, []);
 
-  const completeTournament = useCallback((t: Tournament) => {
-    const tournament = tournaments.find((tt) => tt.name === t.name && tt.createdAt === t.createdAt);
-    if (!tournament) {
-      return;
-    }
-    setTournaments(s => {
-      const result = [...s];
-      const index = result.findIndex((st) => st.name === t.name && st.createdAt === t.createdAt);
-      result[index].status = 'completed';
-      return result;
+  const completeTournament = useCallback((tournamentId: string) => {
+    setTournaments(prevTournaments => {
+      const index = prevTournaments.findIndex((t) => t.id === tournamentId);
+      if (index < 0) {
+        return prevTournaments;
+      }
+      const newTournaments = [...prevTournaments];
+      newTournaments[index] = {
+        ...newTournaments[index],
+        status: 'completed'
+      };
+      return newTournaments;
     });
-  }, [tournaments]);
+  }, []);
 
   return useMemo(() => ({
     tournaments,
     addTournament,
     removeTournament,
     selectedTournament,
-    selectTournament,
+    selectTournament: setSelectedTournamentId,
     startTournament,
     completeTournament
-  }), [addTournament, removeTournament, selectTournament, selectedTournament, startTournament, tournaments, completeTournament]);
+  }), [addTournament, removeTournament, selectedTournament, startTournament, tournaments, completeTournament]);
 };
